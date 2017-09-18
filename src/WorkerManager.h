@@ -3,7 +3,7 @@
 
 #include "HttpDispatch.h"
 
-class WorkerManager
+class WorkerManager : private boost::noncopyable
 {
 public:
     WorkerManager(muduo::net::EventLoop *loop,

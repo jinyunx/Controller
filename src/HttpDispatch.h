@@ -9,7 +9,7 @@
 #include <map>
 #include <string>
 
-class HttpDispatch
+class HttpDispatch : private boost::noncopyable
 {
 public:
     typedef std::tr1::function < void(const muduo::net::HttpRequest &req,
