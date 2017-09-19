@@ -29,13 +29,13 @@ void HttpDispatch::AddHander(const std::string &url,
 void HttpDispatch::ResponseOk(boost::shared_ptr<HttpResponser> &resp)
 {
     resp->SetStatusCode(HttpResponser::StatusCode_200Ok);
-    resp->SetStatusMessage(RSP_OK);
+    resp->SetBody(RSP_OK);
 }
 
 void HttpDispatch::ResponseError(boost::shared_ptr<HttpResponser> &resp)
 {
     resp->SetStatusCode(HttpResponser::StatusCode_400BadRequest);
-    resp->SetStatusMessage(RSP_ERROR);
+    resp->SetBody(RSP_ERROR);
     resp->SetCloseConnection(true);
 }
 
@@ -47,7 +47,7 @@ void HttpDispatch::OnRequest(const boost::shared_ptr<HttpRequester> &req,
     if (it == m_handlers.end())
     {
         resp->SetStatusCode(HttpResponser::StatusCode_404NotFound);
-        resp->SetStatusMessage(RSP_NOTFOUND);
+        resp->SetBody(RSP_NOTFOUND);
         resp->SetCloseConnection(true);
     }
     else
