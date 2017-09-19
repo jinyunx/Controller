@@ -33,6 +33,20 @@ bool HttpParser::IsComplete()
     return m_complete;
 }
 
+void HttpParser::Reset()
+{
+    http_parser_init(&m_httpParser, HTTP_REQUEST);
+    m_httpParser.data = this;
+    m_complete = false;
+    m_headerState = HeaderState_None;
+    m_url.clear();
+    m_method.clear();
+    m_headerName.clear();
+    m_headerValue.clear();
+    m_headers.clear();
+    m_body.clear();
+}
+
 const std::string & HttpParser::GetUrl()
 {
     return m_url;
@@ -51,6 +65,14 @@ const std::string & HttpParser::GetBody()
 const HttpParser::HeaderMap & HttpParser::GetHeaders()
 {
     return m_headers;
+}
+
+const char * HttpParser::GetHeader(const std::string &name)
+{
+    HeaderMap::iterator it = m_headers.find(name);
+    if (it != m_headers.end())
+        return it->second.c_str();
+    return "";
 }
 
 bool HttpParser::HeaderReady()

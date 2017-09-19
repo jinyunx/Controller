@@ -10,12 +10,14 @@ public:
                   const muduo::net::InetAddress &listenAddr);
 private:
 
-    void HandleStartPush(const muduo::net::HttpRequest &req,
-                         muduo::net::HttpResponse *resp);
-    void HandleEndPush(const muduo::net::HttpRequest &req,
-                       muduo::net::HttpResponse *resp);
-    void HandleHeartbeat(const muduo::net::HttpRequest &req,
-                         muduo::net::HttpResponse *resp);
+    void HandleStartPush(const boost::shared_ptr<HttpRequester> &req,
+                         boost::shared_ptr<HttpResponser> &resp);
+    void HandleEndPush(const boost::shared_ptr<HttpRequester> &req,
+                       boost::shared_ptr<HttpResponser> &resp);
+    void HandleHeartbeat(const boost::shared_ptr<HttpRequester> &req,
+                         boost::shared_ptr<HttpResponser> &resp);
+
+    static const int kTimeoutSecond = 5;
 
     HttpDispatch m_httpDispatch;
 };

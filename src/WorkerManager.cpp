@@ -1,10 +1,9 @@
-
 #include "WorkerManager.h"
 #include <muduo/base/Logging.h>
 
 WorkerManager::WorkerManager(muduo::net::EventLoop *loop,
                              const muduo::net::InetAddress &listenAddr)
-    : m_httpDispatch(loop, listenAddr, "WorkerManager")
+    : m_httpDispatch(kTimeoutSecond, loop, listenAddr, "WorkerManager")
 {
     m_httpDispatch.AddHander("/start",
                              std::tr1::bind(&WorkerManager::HandleStartPush,
@@ -23,23 +22,24 @@ WorkerManager::WorkerManager(muduo::net::EventLoop *loop,
     m_httpDispatch.Start();
 }
 
-void WorkerManager::HandleStartPush(const muduo::net::HttpRequest &req,
-                                    muduo::net::HttpResponse *resp)
+void WorkerManager::HandleStartPush(const boost::shared_ptr<HttpRequester> &req,
+                                    boost::shared_ptr<HttpResponser> &resp)
 {
     LOG_INFO << "HandleStartPush";
     m_httpDispatch.ResponseOk(resp);
 }
 
-void WorkerManager::HandleEndPush(const muduo::net::HttpRequest &req,
-                                  muduo::net::HttpResponse *resp)
+void WorkerManager::HandleEndPush(const boost::shared_ptr<HttpRequester> &req,
+                                  boost::shared_ptr<HttpResponser> &resp)
 {
     LOG_INFO << "HandleEndPush";
     m_httpDispatch.ResponseOk(resp);
 }
 
-void WorkerManager::HandleHeartbeat(const muduo::net::HttpRequest &req,
-                                    muduo::net::HttpResponse *resp)
+void WorkerManager::HandleHeartbeat(const boost::shared_ptr<HttpRequester> &req,
+                                    boost::shared_ptr<HttpResponser> &resp)
 {
     LOG_INFO << "HandleHeartbeat";
+    LOG_INFO << req->GetBody();
     m_httpDispatch.ResponseOk(resp);
 }

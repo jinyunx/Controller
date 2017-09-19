@@ -15,11 +15,13 @@ public:
 
     bool Parse(const char *data, size_t len);
     bool IsComplete();
+    void Reset();
 
     const std::string & GetUrl();
     const std::string & GetMethod();
     const std::string & GetBody();
     const HeaderMap & GetHeaders();
+    const char * GetHeader(const std::string &name);
 
 private:
     enum HeaderState

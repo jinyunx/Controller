@@ -5,20 +5,19 @@
 #define RSP_ERROR "{\"code\": 1, \"message\": \"Bad Method\"}\n"
 #define RSP_NOTFOUND "{\"code\": 1, \"message\": \"Not Found\"}\n"
 
-HttpDispatch::HttpDispatch(muduo::net::EventLoop *loop,
+HttpDispatch::HttpDispatch(int timeoutSecond,
+                           muduo::net::EventLoop *loop,
                            const muduo::net::InetAddress &listenAddr,
                            const muduo::string &name)
-    : m_server(loop, listenAddr, name)
-{
-
-}
+    : m_server(timeoutSecond, loop, listenAddr, name)
+{ }
 
 void HttpDispatch::Start()
 {
-    m_server.setHttpCallback(std::tr1::bind(&HttpDispatch::OnRequest, this,
+    m_server.SetHttpCallback(std::tr1::bind(&HttpDispatch::OnRequest, this,
                              std::tr1::placeholders::_1,
                              std::tr1::placeholders::_2));
-    m_server.start();
+    m_server.Start();
 }
 
 void HttpDispatch::AddHander(const std::string &url,
@@ -27,29 +26,29 @@ void HttpDispatch::AddHander(const std::string &url,
     m_handlers[url] = hander;
 }
 
-void HttpDispatch::ResponseOk(muduo::net::HttpResponse *resp)
+void HttpDispatch::ResponseOk(boost::shared_ptr<HttpResponser> &resp)
 {
-    resp->setStatusCode(muduo::net::HttpResponse::k200Ok);
-    resp->setStatusMessage(RSP_OK);
+    resp->SetStatusCode(HttpResponser::StatusCode_200Ok);
+    resp->SetStatusMessage(RSP_OK);
 }
 
-void HttpDispatch::ResponseError(muduo::net::HttpResponse *resp)
+void HttpDispatch::ResponseError(boost::shared_ptr<HttpResponser> &resp)
 {
-    resp->setStatusCode(muduo::net::HttpResponse::k400BadRequest);
-    resp->setStatusMessage(RSP_ERROR);
-    resp->setCloseConnection(true);
+    resp->SetStatusCode(HttpResponser::StatusCode_400BadRequest);
+    resp->SetStatusMessage(RSP_ERROR);
+    resp->SetCloseConnection(true);
 }
 
-void HttpDispatch::OnRequest(const muduo::net::HttpRequest &req,
-                             muduo::net::HttpResponse *resp)
+void HttpDispatch::OnRequest(const boost::shared_ptr<HttpRequester> &req,
+                             boost::shared_ptr<HttpResponser> &resp)
 {
-    LOG_INFO << req.methodString() << " " << req.path();
-    HanderMap::iterator it = m_handlers.find(req.path().c_str());
+    LOG_INFO << req->GetMethod() << " " << req->GetUrl();
+    HanderMap::iterator it = m_handlers.find(req->GetUrl().c_str());
     if (it == m_handlers.end())
     {
-        resp->setStatusCode(muduo::net::HttpResponse::k404NotFound);
-        resp->setStatusMessage(RSP_NOTFOUND);
-        resp->setCloseConnection(true);
+        resp->SetStatusCode(HttpResponser::StatusCode_404NotFound);
+        resp->SetStatusMessage(RSP_NOTFOUND);
+        resp->SetCloseConnection(true);
     }
     else
     {

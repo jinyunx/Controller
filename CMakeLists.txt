@@ -34,8 +34,9 @@ add_executable(Controller
     src/Controller.cpp
     src/HttpDispatch.cpp
     src/WorkerManager.cpp
-    src/HttpParser.cpp
 
+    src/HttpServer.cpp
+    src/HttpParser.cpp
     3rd/http-parser/http_parser.c
     )
 
