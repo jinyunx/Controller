@@ -1,0 +1,5 @@
+测试http性能：
+1.ab工具：tools/httpd.zip
+2.nethogs工具，查看进程网络
+3.top工具，查看进程CPU和内存消耗 sudo yum install nethogs
+4.文档 doc/ab性能测试工具的使用.pdf
