@@ -52,8 +52,30 @@ public:
         return m_httpParser.GetHeader(name);
     }
 
+    void SetPeerIp(const std::string &peerIp)
+    {
+        m_peerIp = peerIp;
+    }
+
+    void SetPeerPort(unsigned short peerPort)
+    {
+        m_peerPort = peerPort;
+    }
+
+    const std::string & GetPeerIp()
+    {
+        return m_peerIp;
+    }
+
+    unsigned short GetPeerPort()
+    {
+        return m_peerPort;
+    }
+
 private:
     HttpParser m_httpParser;
+    std::string m_peerIp;
+    unsigned short m_peerPort;
 };
 
 #endif

@@ -75,7 +75,7 @@ private:
     void OnTimer()
     {
         m_connectionBuckets.push_back(Bucket());
-        dumpConnectionBuckets();
+        //dumpConnectionBuckets();
     }
 
     void dumpConnectionBuckets() const

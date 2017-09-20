@@ -42,6 +42,8 @@ void HttpServer::OnConnection(const muduo::net::TcpConnectionPtr &conn)
     if (conn->connected())
     {
         boost::shared_ptr<HttpRequester> httpRequester(new HttpRequester);
+        httpRequester->SetPeerIp(conn->peerAddress().toIp().c_str());
+        httpRequester->SetPeerPort(conn->peerAddress().toPort());
         HttpContext httpContext(m_idleDector.NewEntry(conn), httpRequester);
         conn->setContext(httpContext);
     }
