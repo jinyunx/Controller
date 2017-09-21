@@ -46,3 +46,17 @@ target_link_libraries(Controller
     muduo_base
     pthread
     )
+
+add_executable(TcpClient
+    src/GetWorkerInfo.cpp
+
+    src/HttpParser.cpp
+    3rd/http-parser/http_parser.c
+    )
+
+target_link_libraries(TcpClient
+    muduo_http
+    muduo_net
+    muduo_base
+    pthread
+    )

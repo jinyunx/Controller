@@ -18,7 +18,7 @@ HttpParser::HttpParser()
     : m_headerState(HeaderState_None),
       m_complete(false)
 {
-    http_parser_init(&m_httpParser, HTTP_REQUEST);
+    http_parser_init(&m_httpParser, HTTP_BOTH);
     m_httpParser.data = this;
 }
 
@@ -35,7 +35,7 @@ bool HttpParser::IsComplete()
 
 void HttpParser::Reset()
 {
-    http_parser_init(&m_httpParser, HTTP_REQUEST);
+    http_parser_init(&m_httpParser, HTTP_BOTH);
     m_httpParser.data = this;
     m_complete = false;
     m_headerState = HeaderState_None;
