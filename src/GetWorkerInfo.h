@@ -8,10 +8,11 @@
 #include <boost/noncopyable.hpp>
 #include <boost/bind.hpp>
 
+class TcpClientTimeQueue;
 class GetWorkerInfo : private boost::noncopyable
 {
 public:
-    GetWorkerInfo(const muduo::net::InetAddress& serverAddr);
+    GetWorkerInfo();
     ~GetWorkerInfo();
 
     enum MessageType
@@ -50,57 +51,18 @@ public:
     void Put(const QueueMessagePtr &message);
 
 private:
+    static const int kTcpTimeout = 1;
+
     void ThreadFunc();
+    void OnTimer();
     QueueMessagePtr Take();
+    void CreateTcpClientQueue();
+
 
     muduo::BlockingQueue<QueueMessagePtr> m_queue;
-    muduo::net::EventLoop loop;
-    muduo::net::TcpClient m_tcpClient;
+    boost::shared_ptr<muduo::net::EventLoop> m_loop;
+    boost::shared_ptr<TcpClientTimeQueue> m_tcpClientQueue;
     muduo::Thread m_thread;
 };
-
-GetWorkerInfo::GetWorkerInfo(const muduo::net::InetAddress& serverAddr)
-    : m_thread(boost::bind(&GetWorkerInfo::ThreadFunc, this)),
-    m_tcpClient(&loop, serverAddr, "GetWorkerInfo")
-{ }
-
-GetWorkerInfo::~GetWorkerInfo()
-{
-    QueueMessagePtr stop(new(QueueMessage));
-    stop->type = MessageType_Command;
-    stop->command = Command_Stop;
-    Put(stop);
-    m_thread.join();
-}
-
-void GetWorkerInfo::Put(const QueueMessagePtr &message)
-{
-    m_queue.put(message);
-}
-
-GetWorkerInfo::QueueMessagePtr GetWorkerInfo::Take()
-{
-    return m_queue.take();
-}
-
-void GetWorkerInfo::ThreadFunc()
-{
-    bool stop = false;
-    while (!stop)
-    {
-        GetWorkerInfo::QueueMessagePtr messagePtr = Take();
-        switch (messagePtr->type)
-        {
-        case MessageType_Command:
-            stop = true;
-            break;
-
-        case MessageType_Data:
-            m_tcpClient.connect();
-        default:
-            break;
-        }
-    }
-}
 
 #endif

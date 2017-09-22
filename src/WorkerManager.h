@@ -2,6 +2,7 @@
 #define WORKER_MANAGER
 
 #include "HttpDispatch.h"
+#include "GetWorkerInfo.h"
 
 class WorkerManager : private boost::noncopyable
 {
@@ -16,9 +17,12 @@ private:
     void HandleHeartbeat(const boost::shared_ptr<HttpRequester> &req,
                          boost::shared_ptr<HttpResponser> &resp);
 
+    void PutDataToGetWorkerInfo(const boost::shared_ptr<HttpRequester> &req);
+
     static const int kTimeoutSecond = 5;
 
     HttpDispatch m_httpDispatch;
+    GetWorkerInfo m_getWorkerInfo;
 };
 
 #endif

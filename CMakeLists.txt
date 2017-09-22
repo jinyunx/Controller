@@ -34,6 +34,7 @@ add_executable(Controller
     src/Controller.cpp
     src/HttpDispatch.cpp
     src/WorkerManager.cpp
+    src/GetWorkerInfo.cpp
 
     src/HttpServer.cpp
     src/HttpParser.cpp
@@ -41,20 +42,6 @@ add_executable(Controller
     )
 
 target_link_libraries(Controller
-    muduo_http
-    muduo_net
-    muduo_base
-    pthread
-    )
-
-add_executable(TcpClient
-    src/GetWorkerInfo.cpp
-
-    src/HttpParser.cpp
-    3rd/http-parser/http_parser.c
-    )
-
-target_link_libraries(TcpClient
     muduo_http
     muduo_net
     muduo_base

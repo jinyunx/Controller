@@ -26,6 +26,7 @@ void WorkerManager::HandleStartPush(const boost::shared_ptr<HttpRequester> &req,
                                     boost::shared_ptr<HttpResponser> &resp)
 {
     LOG_INFO << "HandleStartPush";
+    PutDataToGetWorkerInfo(req);
     m_httpDispatch.ResponseOk(resp);
 }
 
@@ -33,6 +34,7 @@ void WorkerManager::HandleEndPush(const boost::shared_ptr<HttpRequester> &req,
                                   boost::shared_ptr<HttpResponser> &resp)
 {
     LOG_INFO << "HandleEndPush";
+    PutDataToGetWorkerInfo(req);
     m_httpDispatch.ResponseOk(resp);
 }
 
@@ -40,6 +42,16 @@ void WorkerManager::HandleHeartbeat(const boost::shared_ptr<HttpRequester> &req,
                                     boost::shared_ptr<HttpResponser> &resp)
 {
     LOG_INFO << "HandleHeartbeat";
-    LOG_INFO << req->GetBody();
+    PutDataToGetWorkerInfo(req);
     m_httpDispatch.ResponseOk(resp);
+}
+
+void WorkerManager::PutDataToGetWorkerInfo(
+    const boost::shared_ptr<HttpRequester> &req)
+{
+    GetWorkerInfo::QueueMessagePtr message(new GetWorkerInfo::QueueMessage);
+    message->type = GetWorkerInfo::MessageType_Data;
+    message->message.ip = req->GetPeerIp();
+    message->message.port = 1985;
+    m_getWorkerInfo.Put(message);
 }
