@@ -16,6 +16,11 @@ private:
                        boost::shared_ptr<HttpResponser> &resp);
     void HandleHeartbeat(const boost::shared_ptr<HttpRequester> &req,
                          boost::shared_ptr<HttpResponser> &resp);
+    void HandleGetIpToPublish(const boost::shared_ptr<HttpRequester> &req,
+                              boost::shared_ptr<HttpResponser> &resp);
+    void HandleGetStreamToPlay(const boost::shared_ptr<HttpRequester> &req,
+                               boost::shared_ptr<HttpResponser> &resp);
+
 
     void PutDataToGetWorkerInfo(const boost::shared_ptr<HttpRequester> &req);
 

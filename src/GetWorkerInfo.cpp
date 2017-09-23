@@ -1,8 +1,8 @@
 #include "GetWorkerInfo.h"
 #include "HttpParser.h"
+#include "../3rd/rapidjson/document.h"
 #include <muduo/net/EventLoop.h>
 #include <muduo/net/TcpClient.h>
-#include <muduo/base/Logging.h>
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
 #include <list>
@@ -11,8 +11,11 @@ class GetWorkerInfoTcpClient : private boost::noncopyable
 {
 public:
     GetWorkerInfoTcpClient(muduo::net::EventLoop *loop,
-                           const muduo::net::InetAddress &serverAddr)
-        : m_createTime(muduo::Timestamp::now()),
+                           const muduo::net::InetAddress &serverAddr,
+                           WorkerInfo &workerInfo)
+        : m_address(serverAddr),
+          m_createTime(muduo::Timestamp::now()),
+          m_workerInfo(workerInfo),
           m_tcpClient(loop, serverAddr, "GetWorkerInfoTcpClient")
     {
         m_tcpClient.setConnectionCallback(boost::bind(
@@ -58,6 +61,9 @@ public:
             if (m_httpParser.IsComplete())
             {
                 LOG_INFO << m_httpParser.GetBody();
+                if (!ParseWorkerInfoJason(m_httpParser.GetBody().c_str()))
+                    LOG_ERROR << "Parse json error";
+
                 buff->retrieveAll();
             }
         }
@@ -65,8 +71,49 @@ public:
             conn->forceClose();
     }
 
+    bool ParseWorkerInfoJason(const char * data)
+    {
+        rapidjson::Document d;
+        d.Parse(data);
+        bool valid = !d.HasParseError();
+        if (valid)
+        {
+            valid = d.HasMember("code") && d["code"].IsInt() &&
+                d["code"].GetInt() == 0;
+        }
+        if (valid)
+        {
+            valid = d.HasMember("streams") && d["streams"].IsArray();
+        }
+        if (valid)
+        {
+            WorkerInfo::StreamInfo streamInfo;
+            const rapidjson::Value &streams = d["streams"];
+            for (rapidjson::SizeType i = 0; valid && i < streams.Size(); ++i)
+            {
+                valid = streams[i].HasMember("name") && streams[i]["name"].IsString() &&
+                    streams[i].HasMember("app") && streams[i]["app"].IsString() &&
+                    streams[i].HasMember("clients") && streams[i]["clients"].IsInt() &&
+                    streams[i].HasMember("publish") && streams[i]["publish"].IsObject() &&
+                    streams[i]["publish"].HasMember("active") && streams[i]["publish"]["active"].IsBool();
+                if (valid)
+                {
+                    streamInfo.name = streams[i]["name"].GetString();
+                    streamInfo.app = streams[i]["app"].GetString();
+                    streamInfo.clientsNum = streams[i]["clients"].GetInt();
+                    streamInfo.active = streams[i]["publish"]["active"].GetBool();
+                    streamInfo.ip = m_address.toIp().c_str();
+                    m_workerInfo.Put(streamInfo, i == 0);
+                }
+            }
+        }
+        return valid;
+    }
+
 private:
+    muduo::net::InetAddress m_address;
     muduo::Timestamp m_createTime;
+    WorkerInfo &m_workerInfo;
     HttpParser m_httpParser;
     muduo::net::TcpClient m_tcpClient;
 };
@@ -146,6 +193,18 @@ void GetWorkerInfo::Put(const QueueMessagePtr &message)
     m_queue.put(message);
 }
 
+bool GetWorkerInfo::GetPublishIp(std::string &ip) const
+{
+    return m_workerInfo.TakeToPublish(ip);
+}
+
+bool GetWorkerInfo::GetSteamToPlay(const std::string &app,
+                                   const std::string &name,
+                                   WorkerInfo::StreamInfo &info) const
+{
+    return m_workerInfo.TakeToPlay(app, name, info);
+}
+
 void GetWorkerInfo::OnTimer()
 {
     LOG_INFO << "OnTimer";
@@ -166,7 +225,7 @@ void GetWorkerInfo::OnTimer()
             muduo::net::InetAddress serverAddr(
                 messagePtr->message.ip, messagePtr->message.port);
             GetWorkerInfoTcpClientPtr tcpClient(
-                new GetWorkerInfoTcpClient(m_loop.get(), serverAddr));
+                new GetWorkerInfoTcpClient(m_loop.get(), serverAddr, m_workerInfo));
             m_tcpClientQueue->AddTcpClient(tcpClient);
             break;
         }
